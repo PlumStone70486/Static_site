@@ -69,23 +69,46 @@ class TestHTMLNode(unittest.TestCase):
         expected = ""
         self.assertEqual(node.props_to_html(), expected)
 
-class TestLeafNode(unittest.TestCase):
     def test_to_html_eq(self):
         props = {
             "href": "https://boot.dev",
         }
-        node = LeafNode("Link to boot.dev", "a", props)
+        node = LeafNode("a", "Link to boot.dev", props)
         expected = '<a href="https://boot.dev">Link to boot.dev</a>'
         self.assertEqual(node.to_html(), expected)
 
     def test_to_html_no_tag(self):
-        node = LeafNode("Text")
+        node = LeafNode(None, "Text")
         expected = "Text"
         self.assertEqual(node.to_html(), expected)
 
     def test_value_error(self):
         with self.assertRaises(ValueError):
-            node =LeafNode(None)
+            node = LeafNode(None, None)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            node = ParentNode("p", [])
+
+    def test_to_html_eq(self):
+        list_node = [
+            LeafNode("b", "This is bold text"),
+            LeafNode("i", "This is italic text"),
+            LeafNode(None, "This is normal text"),
+        ]
+        node = ParentNode("p", list_node)
+        expected = "<p><b>This is bold text</b><i>This is italic text</i>This is normal text</p>"
+        self.assertEqual(node.to_html(), expected)
+
+    def test_to_html_url(self):
+        list_node = [
+            LeafNode("b", "This is bold text", {"href": "https://boot.dev"}),
+            LeafNode("i", "This is italic text"),
+            LeafNode(None, "This is normal text"),
+        ]
+        node = ParentNode("p", list_node)
+        expected = '<p><b href="https://boot.dev">This is bold text</b><i>This is italic text</i>This is normal text</p>'
+        self.assertEqual(node.to_html(), expected)
 
 if __name__ == "__main__":
     unittest.main()
