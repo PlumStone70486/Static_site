@@ -58,5 +58,83 @@ class TestInlineMarkdown(unittest.TestCase):
         ]
         self.assertEqual(new_nodes, expected)
 
+    def test_extract_image(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        result = extract_markdown_images(text)
+        self.assertEqual(result,[("rick roll", "https://i.imgur.com/aKaOqIh.gif"), ("obi wan", "https://i.imgur.com/fJRm4Vk.jpeg")])
+
+    def test_extract_link(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        result = extract_markdown_links(text)
+        self.assertEqual(result,[("to boot dev", "https://www.boot.dev"), ("to youtube", "https://www.youtube.com/@bootdotdev")])
+
+    def test_extract_link_and_image(self):
+        text = "This is a text with an a link [to boot dev](https://boot.dev) and an image ![boots the bear](boots.jpg)"
+        result_link = extract_markdown_links(text)
+        result_image = extract_markdown_images(text)
+        self.assertEqual(result_link, [("to boot dev", "https://boot.dev")])
+        self.assertEqual(result_image, [("boots the bear", "boots.jpg")])
+
+    def test_extract_link_empty(self):
+        text = "This is a text with an a link [](https://boot.dev)"
+        result = extract_markdown_links(text)
+        self.assertEqual(result, [("", "https://boot.dev")])
+
+    def test_split_nodes_image(self):
+        old_nodes = [TextNode(
+            "This is some text with an image ![logo](http://example.com/logo.png) right here.",
+            TextType.TEXT
+        )]
+        new_nodes = split_nodes_image(old_nodes)
+        expected_nodes = [
+        TextNode("This is some text with an image ", TextType.TEXT),
+        TextNode("logo", TextType.IMAGE, "http://example.com/logo.png"),
+        TextNode(" right here.", TextType.TEXT)
+        ]
+        self.assertEqual(new_nodes, expected_nodes)
+
+    def test_split_nodes_images(self):
+        old_nodes = [TextNode(
+            "This is some text with an image ![logo](http://example.com/logo.png) right here and one ![logo](http://example.com/logo.jpg) right here.",
+            TextType.TEXT
+        )]
+        new_nodes = split_nodes_image(old_nodes)
+        expected_nodes = [
+        TextNode("This is some text with an image ", TextType.TEXT),
+        TextNode("logo", TextType.IMAGE, "http://example.com/logo.png"),
+        TextNode(" right here and one ", TextType.TEXT),
+        TextNode("logo", TextType.IMAGE, "http://example.com/logo.jpg"),
+        TextNode(" right here.", TextType.TEXT)
+        ]
+        self.assertEqual(new_nodes, expected_nodes)
+
+    def test_split_nodes_link(self):
+        old_nodes = [TextNode(
+            "This is a link [to boot dev](https://boot.dev) a good website.",
+            TextType.TEXT
+        )]
+        new_nodes = split_nodes_link(old_nodes)
+        expected_nodes = [
+        TextNode("This is a link ", TextType.TEXT),
+        TextNode("to boot dev", TextType.LINK, "https://boot.dev"),
+        TextNode(" a good website.", TextType.TEXT)
+        ]
+        self.assertEqual(new_nodes, expected_nodes)
+
+    def test_split_nodes_links(self):
+        old_nodes = [TextNode(
+            "This is a link [to boot dev](https://boot.dev) a good website and a link [to google](https://google.com) an ok website.",
+            TextType.TEXT
+        )]
+        new_nodes = split_nodes_link(old_nodes)
+        expected_nodes = [
+        TextNode("This is a link ", TextType.TEXT),
+        TextNode("to boot dev", TextType.LINK, "https://boot.dev"),
+        TextNode(" a good website and a link ", TextType.TEXT),
+        TextNode("to google", TextType.LINK, "https://google.com"),
+        TextNode(" an ok website.", TextType.TEXT)
+        ]
+        self.assertEqual(new_nodes, expected_nodes)
+
 if __name__ == "__main__":
     unittest.main()
