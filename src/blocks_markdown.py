@@ -138,6 +138,6 @@ def block_to_html_node_paragraph(block):
 def extract_title(markdown):
     lines = markdown.split("\n")
     for line in lines:
-        if line.startswith("#"):
-            return line[2:].strip()
+        if line.startswith("# "):
+            return line[2:]
     raise ValueError("Not valid title")
